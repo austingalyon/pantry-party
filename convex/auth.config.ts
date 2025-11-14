@@ -1,6 +1,6 @@
-import { AuthConfig } from "convex/server";
+import type { AuthConfig } from "convex/server";
 
-export default {
+const authConfig: AuthConfig = {
   providers: [
     {
       // Replace with your own Clerk Issuer URL from your "convex" JWT template
@@ -12,4 +12,6 @@ export default {
       applicationID: "convex",
     },
   ]
-} satisfies AuthConfig;
+};
+
+export default authConfig;
