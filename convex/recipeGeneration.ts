@@ -43,6 +43,11 @@ export const generateRecipes = action({
     });
 
     try {
+      // Check if we have ingredients
+      if (!room.ingredients || room.ingredients.length === 0) {
+        throw new Error("No ingredients found. Please add ingredients before generating recipes.");
+      }
+
       // Build the prompt
       const ingredientList = room.ingredients
         .map((ing: any) => {
@@ -53,13 +58,17 @@ export const generateRecipes = action({
         })
         .join(", ");
 
+      console.log("📝 Generating recipes with ingredients:", ingredientList);
+
       const constraints = room.constraints || {};
       const systemPrompt = buildSystemPrompt();
       const userPrompt = buildUserPrompt(ingredientList, constraints, count);
 
+      console.log("🤖 Calling OpenAI...");
+
       // Call OpenAI
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -73,8 +82,12 @@ export const generateRecipes = action({
         throw new Error("Empty response from OpenAI");
       }
 
+      console.log("✅ OpenAI response received, parsing...");
+
       const parsed = JSON.parse(responseText);
       const recipes = parsed.recipes || [];
+
+      console.log(`📋 Parsed ${recipes.length} recipes from OpenAI`);
 
       // Validate and filter recipes
       const validRecipes = recipes
@@ -87,6 +100,8 @@ export const generateRecipes = action({
 
       // Save recipes to database
       const recipeIds: string[] = [];
+      console.log(`💾 Saving ${validRecipes.length} recipes to database...`);
+      
       for (const recipe of validRecipes) {
         const id = await ctx.runMutation(api.recipes.createRecipe, {
           roomId: args.roomId,
@@ -108,6 +123,8 @@ export const generateRecipes = action({
       }
 
       // Update room status to voting
+      console.log(`✅ Successfully created ${recipeIds.length} recipes, updating status to voting`);
+      
       await ctx.runMutation(api.recipes.updateRoomStatus, {
         roomId: args.roomId,
         status: "voting",
@@ -115,6 +132,8 @@ export const generateRecipes = action({
 
       return { recipeIds, count: recipeIds.length };
     } catch (error) {
+      console.error("❌ Recipe generation failed:", error);
+      
       // Revert status on error
       await ctx.runMutation(api.recipes.updateRoomStatus, {
         roomId: args.roomId,
