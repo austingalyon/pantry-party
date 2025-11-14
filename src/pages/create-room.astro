@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CreateRoomForm from '../components/CreateRoomForm';
+---
+
+<Layout title="Create Room - Pantry Party">
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Create a New Room</h1>
+    
+    <div class="bg-white p-8 rounded-lg shadow-md">
+      <CreateRoomForm client:only="react" />
+    </div>
+  </div>
+</Layout>
+

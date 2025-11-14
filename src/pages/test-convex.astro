@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ConvexClientProvider from '../components/ConvexClientProvider';
+---
+
+<Layout title="Test Convex - Pantry Party">
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Convex Connection Test</h1>
+    
+    <ConvexClientProvider client:only="react">
+      <div class="bg-white p-8 rounded-lg shadow-md">
+        <p class="text-green-600 font-semibold">✅ ConvexProvider loaded successfully!</p>
+        <p class="text-sm text-gray-600 mt-2">
+          If you can see this, the Convex client is initialized.
+        </p>
+        <p class="text-sm text-gray-600 mt-2">
+          Check the browser console for any errors.
+        </p>
+      </div>
+    </ConvexClientProvider>
+  </div>
+</Layout>

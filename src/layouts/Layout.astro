@@ -1,0 +1,40 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Pantry Party - Collaborative Recipe Generation" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+      <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+          <a href="/" class="text-2xl font-bold text-primary-600">🎉 Pantry Party</a>
+          <div class="flex gap-4">
+            <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+            <a href="/about" class="text-gray-600 hover:text-gray-900">About</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <slot />
+    </main>
+    <footer class="mt-16 bg-white border-t">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-gray-600">
+        <p>Pantry Party © {new Date().getFullYear()}</p>
+      </div>
+    </footer>
+  </body>
+</html>

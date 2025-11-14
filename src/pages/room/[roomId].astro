@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import RoomContent from '../../components/RoomContent';
+
+export const prerender = false;
+
+const { roomId } = Astro.params;
+---
+
+<Layout title="Room - Pantry Party">
+  <RoomContent roomId={roomId as any} client:only="react" />
+</Layout>
