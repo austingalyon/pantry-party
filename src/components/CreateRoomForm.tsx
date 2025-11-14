@@ -1,4 +1,6 @@
-import { ConvexProvider, ConvexReactClient, useMutation } from "convex/react";
+import { ClerkProvider, useAuth } from "@clerk/clerk-react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient, useMutation } from "convex/react";
 import { useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
 
@@ -141,8 +143,10 @@ export default function CreateRoomForm() {
   }, []);
 
   return (
-    <ConvexProvider client={convex}>
-      <CreateRoomFormInner />
-    </ConvexProvider>
+    <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <CreateRoomFormInner />
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
   );
 }

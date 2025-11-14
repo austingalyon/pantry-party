@@ -1,4 +1,6 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ClerkProvider, useAuth } from "@clerk/clerk-react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient } from "convex/react";
 import { useMemo } from "react";
 import RoomData from "./RoomData";
 import IngredientList from "./IngredientList";
@@ -130,8 +132,10 @@ export default function RoomContent({ roomId }: RoomContentProps) {
   console.log("🎯 RoomContent rendering with roomId:", roomId);
 
   return (
-    <ConvexProvider client={convex}>
-      <RoomContentInner roomId={roomId} />
-    </ConvexProvider>
+    <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <RoomContentInner roomId={roomId} />
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
   );
 }

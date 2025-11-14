@@ -1,4 +1,6 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ClerkProvider, useAuth } from "@clerk/clerk-react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient } from "convex/react";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 
@@ -14,5 +16,5 @@ export default function ConvexClientProvider({ children }: { children: ReactNode
     return new ConvexReactClient(url);
   }, []);
 
-  return <ConvexProvider client={convex}>{children}</ConvexProvider>;
+  return <ConvexProviderWithClerk client={convex} useAuth={useAuth}>{children}</ConvexProviderWithClerk>;
 }
