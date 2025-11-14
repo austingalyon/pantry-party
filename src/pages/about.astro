@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About - Pantry Party">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">About Pantry Party</h1>
+    
+    <div class="prose prose-lg max-w-none">
+      <div class="bg-white p-8 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">What is Pantry Party?</h2>
+        <p class="text-gray-700 mb-4">
+          Pantry Party is a collaborative recipe generation app that brings people together 
+          to create amazing meals. Whether you're planning a dinner with friends, cooking 
+          with family, or just exploring new recipe ideas, Pantry Party makes it fun and easy.
+        </p>
+      </div>
+
+      <div class="bg-white p-8 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">How It Works</h2>
+        <ol class="space-y-4 text-gray-700">
+          <li>
+            <strong>Create or Join a Room:</strong> Start a new cooking session or join 
+            an existing one with a room ID.
+          </li>
+          <li>
+            <strong>Add Ingredients:</strong> Everyone can contribute ingredients by typing, 
+            speaking, or uploading photos.
+          </li>
+          <li>
+            <strong>Set Constraints:</strong> Specify dietary restrictions, allergies, meal 
+            types, cooking methods, and time limits.
+          </li>
+          <li>
+            <strong>Generate Recipes:</strong> Our AI analyzes your ingredients and constraints 
+            to create personalized recipe suggestions.
+          </li>
+          <li>
+            <strong>Vote Together:</strong> Review the generated recipes and vote on your favorites 
+            as a group.
+          </li>
+          <li>
+            <strong>Cook and Enjoy:</strong> Select the winning recipe and get step-by-step 
+            instructions to make it happen!
+          </li>
+        </ol>
+      </div>
+
+      <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Technology Stack</h2>
+        <ul class="space-y-2 text-gray-700">
+          <li>🚀 <strong>Astro</strong> - Modern web framework</li>
+          <li>⚡ <strong>Convex</strong> - Real-time backend and database</li>
+          <li>🎨 <strong>TailwindCSS</strong> - Utility-first styling</li>
+          <li>🤖 <strong>OpenAI</strong> - AI-powered recipe generation</li>
+          <li>🎤 <strong>Deepgram</strong> - Voice-to-text (optional)</li>
+          <li>📸 <strong>Image Analysis</strong> - Photo ingredient detection (optional)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
