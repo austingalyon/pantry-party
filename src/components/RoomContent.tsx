@@ -6,6 +6,7 @@ import RecipeGeneration from "./RecipeGeneration";
 import ConstraintsForm from "./ConstraintsForm";
 import ParticipantsList from "./ParticipantsList";
 import ConvexClientProvider from "./ConvexClientProvider";
+import AuthGate from "./AuthGate";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 
@@ -57,7 +58,9 @@ function RoomContentInner({ roomId }: RoomContentProps) {
 export default function RoomContent({ roomId }: RoomContentProps) {
   return (
     <ConvexClientProvider>
-      <RoomContentInner roomId={roomId} />
+      <AuthGate>
+        <RoomContentInner roomId={roomId} />
+      </AuthGate>
     </ConvexClientProvider>
   );
 }

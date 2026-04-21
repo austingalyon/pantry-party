@@ -1,6 +1,7 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import ConvexClientProvider from "./ConvexClientProvider";
+import AuthGate from "./AuthGate";
 import { api } from "../../convex/_generated/api";
 
 function CreateRoomFormInner() {
@@ -107,7 +108,9 @@ function CreateRoomFormInner() {
 export default function CreateRoomForm() {
   return (
     <ConvexClientProvider>
-      <CreateRoomFormInner />
+      <AuthGate>
+        <CreateRoomFormInner />
+      </AuthGate>
     </ConvexClientProvider>
   );
 }
