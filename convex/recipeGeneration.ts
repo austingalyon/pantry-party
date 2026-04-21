@@ -244,7 +244,7 @@ function buildUserPrompt(
   }
 
   if (constraints.dietFilters && constraints.dietFilters.length > 0) {
-    prompt += `Dietary filters: ${constraints.dietFilters.join(", ")}\n`;
+    prompt += `DIETARY RESTRICTIONS (all recipes MUST comply): ${constraints.dietFilters.join(", ")}\n`;
   }
 
   if (constraints.mealType) {
@@ -252,7 +252,7 @@ function buildUserPrompt(
   }
 
   if (constraints.cookingMethods && constraints.cookingMethods.length > 0) {
-    prompt += `Preferred cooking methods: ${constraints.cookingMethods.join(", ")}\n`;
+    prompt += `ALLOWED COOKING METHODS (recipes MUST only use these methods): ${constraints.cookingMethods.join(", ")}\nDo NOT use any cooking method not listed above.\n`;
   }
 
   if (constraints.timeLimitMins) {
