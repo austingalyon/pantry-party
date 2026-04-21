@@ -230,7 +230,7 @@ function buildUserPrompt(
   constraints: any,
   count: number
 ): string {
-  let prompt = `Generate ${count} diverse recipes using these ingredients:\n${ingredientList}\n\n`;
+  let prompt = `Generate EXACTLY ${count} recipes (no more, no less) using these ingredients:\n${ingredientList}\n\n`;
 
   if (constraints.allergies && constraints.allergies.length > 0) {
     prompt += `FORBIDDEN ALLERGENS (must exclude): ${constraints.allergies.join(", ")}\n`;
