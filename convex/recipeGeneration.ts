@@ -14,11 +14,10 @@ export const generateRecipes = action({
     count: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<{ recipeIds: string[]; count: number }> => {
-    // TODO: Re-enable auth when ready
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) {
-    //   throw new Error("Not authenticated");
-    // }
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
 
     const count = args.count || 10;
 
@@ -28,13 +27,12 @@ export const generateRecipes = action({
       throw new Error("Room not found");
     }
 
-    // Auth check temporarily disabled
-    // const isParticipant = room.participants.some(
-    //   (p: any) => p.userId === identity.subject
-    // );
-    // if (!isParticipant) {
-    //   throw new Error("Not a participant in this room");
-    // }
+    const isParticipant = room.participants.some(
+      (p: any) => p.userId === identity.subject
+    );
+    if (!isParticipant) {
+      throw new Error("Not a participant in this room");
+    }
 
     // Update room status to generating
     await ctx.runMutation(api.recipes.updateRoomStatus, {
