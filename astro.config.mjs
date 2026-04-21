@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
+  site: 'https://pantryparty.lol',
   integrations: [clerk(), tailwind(), react()],
   output: 'server',
   adapter: netlify()
