@@ -194,7 +194,9 @@ async function callClaude(
 
 // Helper: Build system prompt
 function buildSystemPrompt(): string {
-  return `You are KitchenCopilot, a precise recipe generator. Given a list of ingredients and constraints, generate creative, realistic recipes that the group can cook together.
+  return `You are KitchenCopilot, a precise recipe generator. You are given a list of available ingredients from the group's pantries and any constraints. Generate creative, realistic recipes that the group can cook together.
+
+IMPORTANT: The ingredient list represents what is available, not what must all be used in every recipe. Each recipe should use a sensible subset of the available ingredients. Aim for variety across recipes — different recipes should highlight different ingredients.
 
 Output a JSON object with this exact structure:
 {
@@ -227,7 +229,7 @@ function buildUserPrompt(
   constraints: any,
   count: number
 ): string {
-  let prompt = `Generate EXACTLY ${count} recipes (no more, no less) using these ingredients:\n${ingredientList}\n\n`;
+  let prompt = `Generate EXACTLY ${count} recipes (no more, no less) from these available ingredients:\n${ingredientList}\n\nEach recipe should use a sensible subset of the ingredients listed above — not all recipes need to use every ingredient.\n\n`;
 
   if (constraints.allergies && constraints.allergies.length > 0) {
     prompt += `FORBIDDEN ALLERGENS (must exclude): ${constraints.allergies.join(", ")}\n`;
