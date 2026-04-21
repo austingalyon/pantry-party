@@ -17,9 +17,13 @@ export const addIngredient = mutation({
     confidence: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // TODO: Re-enable auth when ready
-    const tempUserId = "temp-user-" + Date.now();
-    const tempUserName = "Guest";
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+    const userName = identity.name || identity.email || "Anonymous";
 
     const room = await ctx.db.get(args.roomId);
     if (!room) {
@@ -48,8 +52,8 @@ export const addIngredient = mutation({
 
     return await ctx.db.insert("ingredients", {
       roomId: args.roomId,
-      userId: tempUserId,
-      userName: tempUserName,
+      userId,
+      userName,
       name: normalizedName,
       amount: args.amount,
       unit: args.unit,
@@ -67,7 +71,11 @@ export const removeIngredient = mutation({
     ingredientId: v.id("ingredients"),
   },
   handler: async (ctx, args) => {
-    // TODO: Re-enable auth when ready
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
     const ingredient = await ctx.db.get(args.ingredientId);
     if (!ingredient) {
       throw new Error("Ingredient not found");
@@ -78,7 +86,17 @@ export const removeIngredient = mutation({
       throw new Error("Room not found");
     }
 
-    // For now, allow anyone to remove
+    // Verify user is a participant in this room
+    const participant = await ctx.db
+      .query("participants")
+      .withIndex("by_room", (q) => q.eq("roomId", ingredient.roomId))
+      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .first();
+
+    if (!participant) {
+      throw new Error("Not a participant in this room");
+    }
+
     await ctx.db.delete(args.ingredientId);
   },
 });
