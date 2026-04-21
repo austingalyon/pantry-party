@@ -1,7 +1,6 @@
-import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { ConvexReactClient, useMutation } from "convex/react";
-import { useMemo, useState } from "react";
+import { useMutation } from "convex/react";
+import { useState } from "react";
+import ConvexClientProvider from "./ConvexClientProvider";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 
@@ -18,16 +17,9 @@ function JoinRoomFormInner() {
     setIsJoining(true);
 
     try {
-      console.log("Joining room:", roomId);
-      await joinRoom({
-        roomId: roomId as Id<"rooms">,
-      });
-      console.log("Successfully joined room");
-      
-      // Navigate to the room
+      await joinRoom({ roomId: roomId as Id<"rooms"> });
       window.location.href = `/room/${roomId}`;
     } catch (err) {
-      console.error("Failed to join room:", err);
       setError(err instanceof Error ? err.message : "Failed to join room");
       setIsJoining(false);
     }
@@ -71,22 +63,9 @@ function JoinRoomFormInner() {
 }
 
 export default function JoinRoomForm() {
-  const convex = useMemo(() => {
-    let url = import.meta.env.PUBLIC_CONVEX_URL;
-    console.log("JoinRoomForm - Initial Convex URL:", url);
-
-    if (!url) {
-      url = "http://127.0.0.1:3210";
-    }
-    console.log("JoinRoomForm - Convex URL:", url);
-    return new ConvexReactClient(url);
-  }, []);
-
   return (
-    <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
-      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <JoinRoomFormInner />
-      </ConvexProviderWithClerk>
-    </ClerkProvider>
+    <ConvexClientProvider>
+      <JoinRoomFormInner />
+    </ConvexClientProvider>
   );
 }
