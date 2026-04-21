@@ -109,7 +109,7 @@ export default function RecipeGeneration({ roomId }: RecipeGenerationProps) {
                 : "bg-green-600 text-white hover:bg-green-700"
             }`}
           >
-            {isGenerating ? "Generating..." : "Generate Recipes"}
+            {isGeneratingStatus ? "Generating..." : "Generate Recipes"}
           </button>
         </div>
       </div>
