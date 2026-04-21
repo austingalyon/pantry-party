@@ -64,21 +64,21 @@ export const generateRecipes = action({
         })
         .join(", ");
 
-      const roomConstraints = room.constraints || {};
+      const roomConstraints = room.constraints;
 
       // Merge user profiles with room constraints
       const mergedProfiles = await ctx.runQuery(api.userProfiles.getProfilesForRoom, { roomId: args.roomId });
       const combinedAllergies = Array.from(new Set([
         ...(mergedProfiles?.allergies || []),
-        ...(roomConstraints.allergies || []),
+        ...(roomConstraints?.allergies || []),
       ]));
       const combinedDietFilters = Array.from(new Set([
         ...(mergedProfiles?.dietFilters || []),
-        ...(roomConstraints.dietFilters || []),
+        ...(roomConstraints?.dietFilters || []),
       ]));
 
       const constraints = {
-        ...roomConstraints,
+        ...(roomConstraints || {}),
         allergies: combinedAllergies,
         dietFilters: combinedDietFilters,
       };
