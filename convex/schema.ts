@@ -14,6 +14,7 @@ export default defineSchema({
     ),
     createdAt: v.number(),
     selectedRecipeId: v.optional(v.id("recipes")),
+    aiProvider: v.optional(v.union(v.literal("openai"), v.literal("claude"))),
   }),
 
   participants: defineTable({
