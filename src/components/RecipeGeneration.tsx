@@ -42,7 +42,7 @@ export default function RecipeGeneration({ roomId }: RecipeGenerationProps) {
     setIsGenerating(true);
 
     try {
-      await generateRecipes({ roomId, count: 10 });
+      await generateRecipes({ roomId, count: 5 });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to generate recipes";
       setError(errorMessage);

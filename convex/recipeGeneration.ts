@@ -24,7 +24,7 @@ export const generateRecipes = action({
       throw new Error("Not authenticated");
     }
 
-    const count = args.count || 10;
+    const count = args.count || 5;
 
     // Get room data
     const room = await ctx.runQuery(api.rooms.getRoom, { roomId: args.roomId });
@@ -171,7 +171,7 @@ async function callClaude(
 ): Promise<{ text: string; metadata: Record<string, any> }> {
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+    max_tokens: 16384,
     system: systemPrompt,
     messages: [
       { role: "user", content: userPrompt },
