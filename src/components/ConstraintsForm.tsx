@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useState, useEffect } from "react";
-import { DIET_OPTIONS, ALLERGY_OPTIONS, COOKING_METHOD_OPTIONS, CUISINE_OPTIONS } from "./constants";
+import { ALLERGY_OPTIONS, DIET_OPTIONS, COOKING_METHOD_OPTIONS, CUISINE_OPTIONS } from "./constants";
 
 interface ConstraintsFormProps {
   roomId: Id<"rooms">;
@@ -12,13 +12,16 @@ function ToggleChips({
   label,
   options,
   selected,
+  locked,
   onToggle,
 }: {
   label: string;
   options: string[];
   selected: string[];
+  locked?: string[];
   onToggle: (option: string) => void;
 }) {
+  const lockedSet = new Set(locked || []);
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -26,19 +29,25 @@ function ToggleChips({
       </label>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
-          const isSelected = selected.includes(option.toLowerCase());
+          const key = option.toLowerCase();
+          const isLocked = lockedSet.has(key);
+          const isSelected = selected.includes(key) || isLocked;
           return (
             <button
               key={option}
               type="button"
-              onClick={() => onToggle(option.toLowerCase())}
+              onClick={() => !isLocked && onToggle(key)}
+              disabled={isLocked}
               className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                isSelected
+                isLocked
+                  ? "bg-primary-800 text-white cursor-not-allowed opacity-75"
+                  : isSelected
                   ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
+              title={isLocked ? "Set by a participant's dietary profile" : undefined}
             >
-              {option}
+              {option}{isLocked ? " (locked)" : ""}
             </button>
           );
         })}
@@ -49,11 +58,11 @@ function ToggleChips({
 
 export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
   const constraints = useQuery(api.constraints.getConstraints, { roomId });
+  const mergedProfiles = useQuery(api.userProfiles.getProfilesForRoom, { roomId });
   const updateConstraints = useMutation(api.constraints.updateConstraints);
 
-  const [allergies, setAllergies] = useState<string[]>([]);
-  const [customAllergy, setCustomAllergy] = useState("");
-  const [dietFilters, setDietFilters] = useState<string[]>([]);
+  const [roomAllergies, setRoomAllergies] = useState<string[]>([]);
+  const [roomDietFilters, setRoomDietFilters] = useState<string[]>([]);
   const [cookingMethods, setCookingMethods] = useState<string[]>([]);
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
   const [mealType, setMealType] = useState("");
@@ -61,10 +70,14 @@ export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string>("");
 
+  // User-profile constraints (locked)
+  const profileAllergies = mergedProfiles?.allergies || [];
+  const profileDietFilters = mergedProfiles?.dietFilters || [];
+
   useEffect(() => {
     if (constraints) {
-      setAllergies(constraints.allergies || []);
-      setDietFilters(constraints.dietFilters || []);
+      setRoomAllergies(constraints.allergies || []);
+      setRoomDietFilters(constraints.dietFilters || []);
       setCookingMethods(constraints.cookingMethods || []);
       setCuisinePreferences(constraints.cuisinePreferences || []);
       setMealType(constraints.mealType || "");
@@ -81,6 +94,7 @@ export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
     setList: (val: string[]) => void,
     item: string
   ) => {
+    if (profileAllergies.includes(item) || profileDietFilters.includes(item)) return;
     setList(
       list.includes(item) ? list.filter((i) => i !== item) : [...list, item]
     );
@@ -95,10 +109,10 @@ export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
 
       await updateConstraints({
         roomId,
-        allergies: allergies.length > 0 ? allergies : [],
-        dietFilters: dietFilters.length > 0 ? dietFilters : [],
-        cookingMethods: cookingMethods.length > 0 ? cookingMethods : [],
-        cuisinePreferences: cuisinePreferences.length > 0 ? cuisinePreferences : [],
+        allergies: roomAllergies,
+        dietFilters: roomDietFilters,
+        cookingMethods,
+        cuisinePreferences,
         mealType: mealType || undefined,
         timeLimitMins: timeVal,
       });
@@ -110,6 +124,15 @@ export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
     }
   };
 
+  // Combined view: profile items + room overrides (deduplicated)
+  const allAllergies = Array.from(new Set([...profileAllergies, ...roomAllergies]));
+  const allDietFilters = Array.from(new Set([...profileDietFilters, ...roomDietFilters]));
+
+  // Show locked custom allergies from profiles that aren't in the preset list
+  const lockedCustomAllergies = profileAllergies.filter(
+    (a) => !ALLERGY_OPTIONS.map((o) => o.toLowerCase()).includes(a)
+  );
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-bold text-gray-900 mb-4">⚙️ Constraints</h3>
@@ -118,70 +141,32 @@ export default function ConstraintsForm({ roomId }: ConstraintsFormProps) {
         <ToggleChips
           label="Allergies"
           options={ALLERGY_OPTIONS}
-          selected={allergies}
-          onToggle={(item) => toggleItem(allergies, setAllergies, item)}
+          selected={allAllergies}
+          locked={profileAllergies}
+          onToggle={(item) => toggleItem(roomAllergies, setRoomAllergies, item)}
         />
-        {/* Custom allergies */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={customAllergy}
-            onChange={(e) => setCustomAllergy(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const val = customAllergy.trim().toLowerCase();
-                if (val && !allergies.includes(val)) {
-                  setAllergies([...allergies, val]);
-                }
-                setCustomAllergy("");
-              }
-            }}
-            placeholder="Add custom allergy..."
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const val = customAllergy.trim().toLowerCase();
-              if (val && !allergies.includes(val)) {
-                setAllergies([...allergies, val]);
-              }
-              setCustomAllergy("");
-            }}
-            className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
-          >
-            Add
-          </button>
-        </div>
-        {/* Show custom allergies (ones not in the preset list) */}
-        {allergies.filter((a) => !ALLERGY_OPTIONS.map((o) => o.toLowerCase()).includes(a)).length > 0 && (
+
+        {/* Show locked custom allergies from user profiles */}
+        {lockedCustomAllergies.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {allergies
-              .filter((a) => !ALLERGY_OPTIONS.map((o) => o.toLowerCase()).includes(a))
-              .map((allergy) => (
-                <span
-                  key={allergy}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary-600 text-white"
-                >
-                  {allergy}
-                  <button
-                    type="button"
-                    onClick={() => setAllergies(allergies.filter((a) => a !== allergy))}
-                    className="ml-0.5 hover:text-primary-200"
-                  >
-                    x
-                  </button>
-                </span>
-              ))}
+            {lockedCustomAllergies.map((allergy) => (
+              <span
+                key={allergy}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary-800 text-white opacity-75"
+                title="Set by a participant's dietary profile"
+              >
+                {allergy} (locked)
+              </span>
+            ))}
           </div>
         )}
 
         <ToggleChips
           label="Dietary Restrictions"
           options={DIET_OPTIONS}
-          selected={dietFilters}
-          onToggle={(item) => toggleItem(dietFilters, setDietFilters, item)}
+          selected={allDietFilters}
+          locked={profileDietFilters}
+          onToggle={(item) => toggleItem(roomDietFilters, setRoomDietFilters, item)}
         />
 
         <ToggleChips
