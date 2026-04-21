@@ -6,6 +6,7 @@ interface Props {
 const { title } = Astro.props;
 
 import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/astro/components";
+import DietaryProfileButton from '../components/DietaryProfileButton';
 ---
 
 <!doctype html>
@@ -30,6 +31,7 @@ import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/astro/comp
               <SignInButton mode="modal" />
             </SignedOut>
             <SignedIn>
+              <DietaryProfileButton client:only="react" />
               <UserButton />
             </SignedIn>
           </div>
