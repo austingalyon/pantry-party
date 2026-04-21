@@ -22,12 +22,20 @@ export const addIngredient = mutation({
       throw new Error("Not authenticated");
     }
 
-    const userId = identity.subject;
-    const userName = identity.name || identity.email || "Anonymous";
-
     const room = await ctx.db.get(args.roomId);
     if (!room) {
       throw new Error("Room not found");
+    }
+
+    // Verify user is a participant in this room
+    const participant = await ctx.db
+      .query("participants")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .first();
+
+    if (!participant) {
+      throw new Error("Not a participant in this room");
     }
 
     // Normalize ingredient name (lowercase, trim)
@@ -52,8 +60,8 @@ export const addIngredient = mutation({
 
     return await ctx.db.insert("ingredients", {
       roomId: args.roomId,
-      userId,
-      userName,
+      userId: identity.subject,
+      userName: participant.userName,
       name: normalizedName,
       amount: args.amount,
       unit: args.unit,
