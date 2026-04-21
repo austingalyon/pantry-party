@@ -1,3 +1,9 @@
-import { clerkMiddleware } from "@clerk/astro/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/astro/server";
 
-export const onRequest = clerkMiddleware();
+const isProtectedRoute = createRouteMatcher(["/room(.*)", "/create-room"]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (isProtectedRoute(context.request)) {
+    auth().protect();
+  }
+});
