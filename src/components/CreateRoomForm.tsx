@@ -1,7 +1,6 @@
-import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { ConvexReactClient, useMutation } from "convex/react";
-import { useMemo, useState } from "react";
+import { useMutation } from "convex/react";
+import { useState } from "react";
+import ConvexClientProvider from "./ConvexClientProvider";
 import { api } from "../../convex/_generated/api";
 
 function CreateRoomFormInner() {
@@ -18,14 +17,9 @@ function CreateRoomFormInner() {
     setIsCreating(true);
 
     try {
-      console.log("Creating room:", { name: roomName });
-      const roomId = await createRoom({
-        name: roomName,
-      });
-      console.log("Room created:", roomId);
+      const roomId = await createRoom({ name: roomName });
       setCreatedRoomId(roomId);
     } catch (err) {
-      console.error("Failed to create room:", err);
       setError(err instanceof Error ? err.message : "Failed to create room");
     } finally {
       setIsCreating(false);
@@ -111,22 +105,9 @@ function CreateRoomFormInner() {
 }
 
 export default function CreateRoomForm() {
-  const convex = useMemo(() => {
-    let url = import.meta.env.PUBLIC_CONVEX_URL;
-    console.log("CreateRoomForm - Initial Convex URL:", url);
-
-    if (!url) {
-      url = "http://127.0.0.1:3210";
-    }
-    console.log("CreateRoomForm - Convex URL:", url);
-    return new ConvexReactClient(url);
-  }, []);
-
   return (
-    <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
-      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <CreateRoomFormInner />
-      </ConvexProviderWithClerk>
-    </ClerkProvider>
+    <ConvexClientProvider>
+      <CreateRoomFormInner />
+    </ConvexClientProvider>
   );
 }
