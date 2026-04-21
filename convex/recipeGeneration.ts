@@ -64,7 +64,25 @@ export const generateRecipes = action({
         })
         .join(", ");
 
-      const constraints = room.constraints || {};
+      const roomConstraints = room.constraints || {};
+
+      // Merge user profiles with room constraints
+      const mergedProfiles = await ctx.runQuery(api.userProfiles.getProfilesForRoom, { roomId: args.roomId });
+      const combinedAllergies = Array.from(new Set([
+        ...(mergedProfiles?.allergies || []),
+        ...(roomConstraints.allergies || []),
+      ]));
+      const combinedDietFilters = Array.from(new Set([
+        ...(mergedProfiles?.dietFilters || []),
+        ...(roomConstraints.dietFilters || []),
+      ]));
+
+      const constraints = {
+        ...roomConstraints,
+        allergies: combinedAllergies,
+        dietFilters: combinedDietFilters,
+      };
+
       const systemPrompt = buildSystemPrompt();
       const userPrompt = buildUserPrompt(availableIngredients, mandatoryIngredients, constraints, count);
 
