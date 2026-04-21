@@ -80,7 +80,9 @@ export const generateRecipes = action({
         aiMetadata = result.metadata;
       }
 
-      const parsed = JSON.parse(responseText);
+      // Strip markdown code fences if present (Claude sometimes wraps JSON in ```json ... ```)
+      const cleanedText = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
+      const parsed = JSON.parse(cleanedText);
       const recipes = parsed.recipes || [];
 
       // Validate and filter recipes
