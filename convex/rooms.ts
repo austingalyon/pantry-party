@@ -71,7 +71,12 @@ export const joinRoom = mutation({
       .filter((q) => q.eq(q.field("userId"), userId))
       .first();
 
-    if (!existing) {
+    if (existing) {
+      // Update name in case it changed in Clerk
+      if (existing.userName !== userName) {
+        await ctx.db.patch(existing._id, { userName });
+      }
+    } else {
       await ctx.db.insert("participants", {
         roomId: args.roomId,
         userId: userId,
