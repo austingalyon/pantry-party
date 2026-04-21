@@ -133,7 +133,15 @@ export default function RecipeGeneration({ roomId }: RecipeGenerationProps) {
           </p>
         ) : (
           <div className="grid gap-4">
-            {recipes.map((recipe) => {
+            {[...recipes]
+              .sort((a, b) => {
+                const aVotes = voteCounts[a._id] || 0;
+                const bVotes = voteCounts[b._id] || 0;
+                // Voted recipes first, then by most votes, then newest first
+                if (aVotes !== bVotes) return bVotes - aVotes;
+                return b._creationTime - a._creationTime;
+              })
+              .map((recipe) => {
               const voteCount = voteCounts[recipe._id] || 0;
               const userHasVoted = userVotes.has(recipe._id);
 
