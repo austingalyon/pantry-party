@@ -1,16 +1,16 @@
-import { useAuth, useClerk } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/astro/react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
-  const clerk = useClerk();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      clerk.openSignIn();
+      // Use the global Clerk instance from @clerk/astro
+      (window as any).Clerk?.openSignIn();
     }
-  }, [isLoaded, isSignedIn, clerk]);
+  }, [isLoaded, isSignedIn]);
 
   if (!isLoaded) {
     return <div className="text-center py-12 text-gray-500">Loading...</div>;
