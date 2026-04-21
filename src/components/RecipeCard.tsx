@@ -13,6 +13,7 @@ export interface Recipe {
   servings: number;
   sensitivityFlags: string[];
   voteCount?: number;
+  aiMetadata?: { provider?: string; model?: string };
 }
 
 interface RecipeCardProps {
@@ -28,6 +29,15 @@ export default function RecipeCard({ recipe, roomId, onVote, userHasVoted }: Rec
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{recipe.title}</h3>
+          {recipe.aiMetadata?.provider && (
+            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mb-1 ${
+              recipe.aiMetadata.provider === "anthropic"
+                ? "bg-orange-100 text-orange-700"
+                : "bg-blue-100 text-blue-700"
+            }`}>
+              {recipe.aiMetadata.provider === "anthropic" ? "Claude" : "GPT"}
+            </span>
+          )}
           <p className="text-gray-600 text-sm">{recipe.description}</p>
         </div>
         <div className="flex items-center gap-2 text-primary-600 font-bold text-lg">
