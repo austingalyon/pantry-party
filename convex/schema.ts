@@ -17,6 +17,13 @@ export default defineSchema({
     aiProvider: v.optional(v.union(v.literal("openai"), v.literal("claude"))),
   }),
 
+  userProfiles: defineTable({
+    userId: v.string(),
+    allergies: v.array(v.string()),
+    dietFilters: v.array(v.string()),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   participants: defineTable({
     roomId: v.id("rooms"),
     userId: v.string(),
