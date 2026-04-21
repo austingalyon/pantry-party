@@ -2,58 +2,11 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useState, useEffect } from "react";
+import { DIET_OPTIONS, ALLERGY_OPTIONS, COOKING_METHOD_OPTIONS, CUISINE_OPTIONS } from "./constants";
 
 interface ConstraintsFormProps {
   roomId: Id<"rooms">;
 }
-
-const DIET_OPTIONS = [
-  "Vegetarian",
-  "Vegan",
-  "Gluten-Free",
-  "Dairy-Free",
-  "Keto",
-  "Paleo",
-  "Low-Carb",
-  "Low-Sodium",
-  "Pescatarian",
-  "Halal",
-  "Kosher",
-];
-
-const ALLERGY_OPTIONS = [
-  "Nuts",
-  "Peanuts",
-  "Shellfish",
-  "Dairy",
-  "Eggs",
-  "Soy",
-  "Wheat",
-  "Fish",
-  "Sesame",
-];
-
-const COOKING_METHOD_OPTIONS = [
-  "Grilling",
-  "Baking",
-  "Stovetop",
-  "Slow Cooker",
-  "Instant Pot",
-  "Air Fryer",
-  "No Cook",
-];
-
-const CUISINE_OPTIONS = [
-  "Italian",
-  "Mexican",
-  "Asian",
-  "Indian",
-  "Mediterranean",
-  "American",
-  "Thai",
-  "Japanese",
-  "French",
-];
 
 function ToggleChips({
   label,
