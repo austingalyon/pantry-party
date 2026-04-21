@@ -2,9 +2,14 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 // Recipe generation action
@@ -56,36 +61,27 @@ export const generateRecipes = action({
         })
         .join(", ");
 
-      console.log("📝 Generating recipes with ingredients:", ingredientList);
-
       const constraints = room.constraints || {};
       const systemPrompt = buildSystemPrompt();
       const userPrompt = buildUserPrompt(ingredientList, constraints, count);
 
-      console.log("🤖 Calling OpenAI...");
+      // Call the selected AI provider
+      const aiProvider = (room as any).aiProvider || "openai";
+      let responseText: string;
+      let aiMetadata: Record<string, any>;
 
-      // Call OpenAI
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.8,
-      });
-
-      const responseText = completion.choices[0].message.content;
-      if (!responseText) {
-        throw new Error("Empty response from OpenAI");
+      if (aiProvider === "claude") {
+        const result = await callClaude(systemPrompt, userPrompt);
+        responseText = result.text;
+        aiMetadata = result.metadata;
+      } else {
+        const result = await callOpenAI(systemPrompt, userPrompt);
+        responseText = result.text;
+        aiMetadata = result.metadata;
       }
-
-      console.log("✅ OpenAI response received, parsing...");
 
       const parsed = JSON.parse(responseText);
       const recipes = parsed.recipes || [];
-
-      console.log(`📋 Parsed ${recipes.length} recipes from OpenAI`);
 
       // Validate and filter recipes
       const validRecipes = recipes
@@ -98,8 +94,7 @@ export const generateRecipes = action({
 
       // Save recipes to database
       const recipeIds: string[] = [];
-      console.log(`💾 Saving ${validRecipes.length} recipes to database...`);
-      
+
       for (const recipe of validRecipes) {
         const id = await ctx.runMutation(api.recipes.createRecipe, {
           roomId: args.roomId,
@@ -111,18 +106,12 @@ export const generateRecipes = action({
           estimatedTimeMinutes: recipe.estimatedTimeMinutes || 30,
           servings: recipe.servings || 4,
           sensitivityFlags: recipe.sensitivityFlags || [],
-          aiMetadata: {
-            model: completion.model,
-            promptTokens: completion.usage?.prompt_tokens,
-            completionTokens: completion.usage?.completion_tokens,
-          },
+          aiMetadata,
         });
         recipeIds.push(id);
       }
 
       // Update room status to voting
-      console.log(`✅ Successfully created ${recipeIds.length} recipes, updating status to voting`);
-      
       await ctx.runMutation(api.recipes.updateRoomStatus, {
         roomId: args.roomId,
         status: "voting",
@@ -130,8 +119,8 @@ export const generateRecipes = action({
 
       return { recipeIds, count: recipeIds.length };
     } catch (error) {
-      console.error("❌ Recipe generation failed:", error);
-      
+      console.error("Recipe generation failed:", error);
+
       // Revert status on error
       await ctx.runMutation(api.recipes.updateRoomStatus, {
         roomId: args.roomId,
@@ -142,7 +131,69 @@ export const generateRecipes = action({
   },
 });
 
-// Helper: Build system prompt for OpenAI
+// Call OpenAI API
+async function callOpenAI(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<{ text: string; metadata: Record<string, any> }> {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.8,
+  });
+
+  const text = completion.choices[0].message.content;
+  if (!text) {
+    throw new Error("Empty response from OpenAI");
+  }
+
+  return {
+    text,
+    metadata: {
+      provider: "openai",
+      model: completion.model,
+      promptTokens: completion.usage?.prompt_tokens,
+      completionTokens: completion.usage?.completion_tokens,
+    },
+  };
+}
+
+// Call Anthropic Claude API
+async function callClaude(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<{ text: string; metadata: Record<string, any> }> {
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.8,
+  });
+
+  const textBlock = message.content.find((block: any) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    throw new Error("Empty response from Claude");
+  }
+
+  return {
+    text: textBlock.text,
+    metadata: {
+      provider: "anthropic",
+      model: message.model,
+      promptTokens: message.usage?.input_tokens,
+      completionTokens: message.usage?.output_tokens,
+    },
+  };
+}
+
+// Helper: Build system prompt
 function buildSystemPrompt(): string {
   return `You are KitchenCopilot, a precise recipe generator. Given a list of ingredients and constraints, generate creative, realistic recipes that the group can cook together.
 
