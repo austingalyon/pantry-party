@@ -94,12 +94,10 @@ export const generateRecipes = action({
         throw new Error("No valid recipes generated");
       }
 
-      // Save recipes to database
-      const recipeIds: string[] = [];
-
-      for (const recipe of validRecipes) {
-        const id = await ctx.runMutation(api.recipes.createRecipe, {
-          roomId: args.roomId,
+      // Save all recipes in a single mutation
+      const recipeIds = await ctx.runMutation(api.recipes.createRecipesBatch, {
+        roomId: args.roomId,
+        recipes: validRecipes.map((recipe: any) => ({
           title: recipe.title,
           description: recipe.description,
           ingredients: recipe.ingredients,
@@ -109,9 +107,8 @@ export const generateRecipes = action({
           servings: recipe.servings || 4,
           sensitivityFlags: recipe.sensitivityFlags || [],
           aiMetadata,
-        });
-        recipeIds.push(id);
-      }
+        })),
+      });
 
       // Update room status to voting
       await ctx.runMutation(api.recipes.updateRoomStatus, {

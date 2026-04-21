@@ -38,6 +38,44 @@ export const createRecipe = mutation({
   },
 });
 
+// Create multiple recipes in a single mutation
+export const createRecipesBatch = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    recipes: v.array(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        ingredients: v.array(
+          v.object({
+            name: v.string(),
+            amount: v.optional(v.string()),
+            preparation: v.optional(v.string()),
+          })
+        ),
+        steps: v.array(v.string()),
+        tags: v.array(v.string()),
+        estimatedTimeMinutes: v.number(),
+        servings: v.number(),
+        sensitivityFlags: v.array(v.string()),
+        aiMetadata: v.optional(v.any()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const ids = [];
+    for (const recipe of args.recipes) {
+      const id = await ctx.db.insert("recipes", {
+        roomId: args.roomId,
+        ...recipe,
+        generatedAt: Date.now(),
+      });
+      ids.push(id);
+    }
+    return ids;
+  },
+});
+
 // Update room status
 export const updateRoomStatus = mutation({
   args: {
