@@ -38,6 +38,7 @@ export default defineSchema({
       v.literal("image")
     ),
     confidence: v.optional(v.number()),
+    mandatory: v.optional(v.boolean()),
     addedAt: v.number(),
   }).index("by_room", ["roomId"]),
 

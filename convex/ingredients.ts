@@ -109,6 +109,28 @@ export const removeIngredient = mutation({
   },
 });
 
+// Toggle mandatory flag on an ingredient
+export const toggleMandatory = mutation({
+  args: {
+    ingredientId: v.id("ingredients"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const ingredient = await ctx.db.get(args.ingredientId);
+    if (!ingredient) {
+      throw new Error("Ingredient not found");
+    }
+
+    await ctx.db.patch(args.ingredientId, {
+      mandatory: !ingredient.mandatory,
+    });
+  },
+});
+
 // Get all ingredients for a room
 export const getIngredients = query({
   args: { roomId: v.id("rooms") },

@@ -51,8 +51,11 @@ export const generateRecipes = action({
         throw new Error("No ingredients found. Please add ingredients before generating recipes.");
       }
 
-      // Build the prompt
-      const ingredientList = room.ingredients
+      // Split ingredients into mandatory and available
+      const mandatoryIngredients = room.ingredients
+        .filter((ing: any) => ing.mandatory)
+        .map((ing: any) => ing.name);
+      const availableIngredients = room.ingredients
         .map((ing: any) => {
           if (ing.amount && ing.unit) {
             return `${ing.amount} ${ing.unit} ${ing.name}`;
@@ -63,7 +66,7 @@ export const generateRecipes = action({
 
       const constraints = room.constraints || {};
       const systemPrompt = buildSystemPrompt();
-      const userPrompt = buildUserPrompt(ingredientList, constraints, count);
+      const userPrompt = buildUserPrompt(availableIngredients, mandatoryIngredients, constraints, count);
 
       // Call the selected AI provider
       const aiProvider = (room as any).aiProvider || "openai";
@@ -226,10 +229,15 @@ CRITICAL: Respect all dietary restrictions and allergies. Mark sensitivity flags
 // Helper: Build user prompt
 function buildUserPrompt(
   ingredientList: string,
+  mandatoryIngredients: string[],
   constraints: any,
   count: number
 ): string {
   let prompt = `Generate EXACTLY ${count} recipes (no more, no less) from these available ingredients:\n${ingredientList}\n\nEach recipe should use a sensible subset of the ingredients listed above — not all recipes need to use every ingredient.\n\n`;
+
+  if (mandatoryIngredients.length > 0) {
+    prompt += `MANDATORY INGREDIENTS (every recipe MUST include these): ${mandatoryIngredients.join(", ")}\n\n`;
+  }
 
   if (constraints.allergies && constraints.allergies.length > 0) {
     prompt += `FORBIDDEN ALLERGENS (must exclude): ${constraints.allergies.join(", ")}\n`;

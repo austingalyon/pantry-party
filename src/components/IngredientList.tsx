@@ -12,6 +12,7 @@ export default function IngredientList({ roomId }: IngredientListProps) {
   const ingredients = useQuery(api.ingredients.getIngredients, { roomId });
   const addIngredient = useMutation(api.ingredients.addIngredient);
   const removeIngredient = useMutation(api.ingredients.removeIngredient);
+  const toggleMandatory = useMutation(api.ingredients.toggleMandatory);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,12 +94,23 @@ export default function IngredientList({ roomId }: IngredientListProps) {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleRemove(ingredient._id)}
-                className="text-red-500 hover:text-red-700 text-sm font-semibold"
-              >
-                Remove
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={!!ingredient.mandatory}
+                    onChange={() => toggleMandatory({ ingredientId: ingredient._id })}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  Required
+                </label>
+                <button
+                  onClick={() => handleRemove(ingredient._id)}
+                  className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ))
         )}
