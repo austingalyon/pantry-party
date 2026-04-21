@@ -138,3 +138,35 @@ export const getParticipants = query({
       .collect();
   },
 });
+
+// Update AI provider for a room
+export const updateAiProvider = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    aiProvider: v.union(v.literal("openai"), v.literal("claude")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const room = await ctx.db.get(args.roomId);
+    if (!room) {
+      throw new Error("Room not found");
+    }
+
+    // Verify user is a participant
+    const participant = await ctx.db
+      .query("participants")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .first();
+
+    if (!participant) {
+      throw new Error("Not a participant in this room");
+    }
+
+    await ctx.db.patch(args.roomId, { aiProvider: args.aiProvider });
+  },
+});
